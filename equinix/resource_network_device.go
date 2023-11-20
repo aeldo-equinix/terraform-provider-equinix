@@ -32,6 +32,7 @@ var neDeviceSchemaNames = map[string]string{
 	"Version":             "version",
 	"IsBYOL":              "byol",
 	"LicenseToken":        "license_token",
+	"LicenseCategory":	   "license_category"
 	"LicenseFile":         "license_file",
 	"LicenseFileID":       "license_file_id",
 	"CloudInitFileID":     "cloud_init_file_id",
@@ -107,6 +108,7 @@ var neDeviceDescriptions = map[string]string{
 	"ClusterDetails":      "An object that has the cluster details",
 	"ValidStatusList":     "Comma Separated List of states to be considered valid when searching by name",
 	"Connectivity":        "Parameter to identify internet access for device. Supported Values: INTERNET-ACCESS(default) or PRIVATE or INTERNET-ACCESS-WITH-PRVT-MGMT",
+	"LicenseCAtegory":     "License Category field applicable only to Fortinet devices and is mandatory for Fortinet devices with values either FLEX for token based license or CLASSIC for file based license. "
 }
 
 var neDeviceInterfaceSchemaNames = map[string]string{
@@ -245,6 +247,13 @@ func createNetworkDeviceSchema() map[string]*schema.Schema {
 			Type:        schema.TypeString,
 			Computed:    true,
 			Description: neDeviceDescriptions["LicenseStatus"],
+		},
+		neDeviceSchemaNames["LicenseCategory"]: {
+			Type:         schema.TypeString,
+			Optional:     true,
+			Default:      "CLASSIC",
+			ValidateFunc: validation.StringInSlice([]string{"CLASSIC", "FLEX"}, false),
+			Description:  neDeviceDescriptions["LicenseCategory"],
 		},
 		neDeviceSchemaNames["MetroCode"]: {
 			Type:         schema.TypeString,
@@ -1056,6 +1065,9 @@ func createNetworkDevices(d *schema.ResourceData) (*ne.Device, *ne.Device) {
 	}
 	if v, ok := d.GetOk(neDeviceSchemaNames["LicenseFileID"]); ok {
 		primary.LicenseFileID = ne.String(v.(string))
+	}
+	if v, ok := d.GetOk(neDeviceSchemaNames["LicenseCategory"]); ok {
+		primary.LicenseCategory = ne.String(v.(string))
 	}
 	if v, ok := d.GetOk(neDeviceSchemaNames["CloudInitFileID"]); ok {
 		primary.CloudInitFileID = ne.String(v.(string))
